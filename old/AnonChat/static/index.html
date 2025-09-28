@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>AnonTherapy Chat (Omegle-like)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <header>
+      <!-- improved header with avatar -->
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div id="avatar" title="You" style="width:44px;height:44px;border-radius:50%;background:#e6eef8;display:flex;align-items:center;justify-content:center;font-weight:700;color:#1543a3">A</div>
+        <div>
+          <h1 style="margin:0;font-size:18px;">AnonTherapy</h1>
+          <div style="font-size:12px;color:#666;margin-top:3px;">Talk anonymously — get matched on mental health topics</div>
+        </div>
+      </div>
+
+      <div id="name-wrap" style="display:flex;align-items:center;gap:8px;">
+        <input id="name" placeholder="Your name (optional)" />
+        <button id="set-name">Set</button>
+        
+        <label style="font-size:13px;color:#666;margin-left:8px;">Dark
+          <input type="checkbox" id="dark-toggle" style="margin-left:6px;">
+        </label>
+      </div>
+    </header>
+
+    <section id="match-controls" style="padding:12px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:12px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button id="find">Find a stranger to talk</button>
+        <button id="cancel-search" disabled style="background:#ef4444;">Cancel</button>
+        <button id="leave-room" disabled style="background:#ef4444; margin-left:8px;">Leave</button>
+      </div>
+      <select id="topic-select">
+        <option value="">Any topic (random)</option>
+      </select>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:12px;">
+        <span id="status" style="color:#666;">Not connected</span>
+      </div>
+    </section>
+
+    <main id="messages" aria-live="polite"></main>
+
+    <!-- preview area for pending upload -->
+    <div id="preview-area" style="padding:8px 12px;border-top:1px solid #eee;display:none;align-items:center;gap:8px;">
+      <img id="preview-thumb" src="" style="max-width:120px;border-radius:8px;display:block;margin-right:8px;">
+      <div style="flex:1;">
+        <div id="preview-name" style="font-size:13px;color:#333"></div>
+        <div style="margin-top:6px;">
+          <button id="preview-send" style="margin-right:8px;">Send with message</button>
+          <button id="preview-cancel" class="secondary">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <textarea id="text" rows="2" placeholder="Type a message..." disabled></textarea>
+      <input id="file-input" type="file" accept="image/*" style="display:none;" />
+      <button id="attach" title="Attach image">Attach</button>
+      <button id="send" disabled>Send</button>
+      <!-- footer leave removed (we keep the single leave button in controls) -->
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mental Wellness Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 text-gray-800">
+
+  <!-- Navbar -->
+  <header class="sticky top-0 z-50 bg-white/80 backdrop-blur shadow-sm">
+    <div class="max-w-7xl mx-auto flex justify-between items-center py-4 px-6">
+      <h1 class="text-2xl font-bold text-indigo-600">MindfulSpace</h1>
+      <nav class="hidden md:flex space-x-8 font-medium">
+        <a href="#features" class="hover:text-indigo-600">Features</a>
+        <a href="#about" class="hover:text-indigo-600">About</a>
+        <a href="#contact" class="hover:text-indigo-600">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="text-center py-24 px-6 bg-gradient-to-b from-white to-indigo-50">
+    <div class="max-w-3xl mx-auto">
+      <h2 class="text-5xl font-extrabold mb-6 leading-tight">
+        Your <span class="text-indigo-600">Mental Wellness</span> Companion
+      </h2>
+      <p class="text-lg text-gray-600 mb-8">
+        Journal your thoughts, connect anonymously, or chat with an AI therapist.  
+        Everything you need for emotional well-being — in one hub.
+      </p>
+      <div class="flex flex-wrap justify-center gap-4">
+        <a href="#features" class="px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold shadow hover:bg-indigo-700 transition">Explore Features</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features" class="py-20 px-6">
+    <div class="max-w-7xl mx-auto">
+      <h3 class="text-3xl font-bold text-center mb-12">What You Can Do</h3>
+      <div class="grid md:grid-cols-3 gap-10">
+        
+        <!-- Journal -->
+        <a href="old/Journal.html" class="block bg-white rounded-2xl shadow hover:shadow-xl transition p-8 text-center">
+          <div class="text-4xl mb-4">📓</div>
+          <h4 class="text-xl font-semibold mb-2 text-indigo-600">Mindful Journal</h4>
+          <p class="text-gray-600">
+            Write privately, reflect on your day, and get gentle AI-powered insights.
+          </p>
+        </a>
+
+        <!-- Therapist Bot -->
+        <a href="http://127.0.0.1:5500/" class="block bg-white rounded-2xl shadow hover:shadow-xl transition p-8 text-center">
+          <div class="text-4xl mb-4">💬</div>
+          <h4 class="text-xl font-semibold mb-2 text-purple-600">AI Therapist</h4>
+          <p class="text-gray-600">
+            A 24/7 AI companion that listens and guides you with supportive conversations.
+          </p>
+        </a>
+
+
+  <!-- Anonymous Chat Link -->
+  <a href="http://127.0.0.1:5000/" class="block bg-white rounded-2xl shadow hover:shadow-xl transition p-8 text-center">
+    <div class="text-4xl mb-4">🤝</div>
+    <h4 class="text-xl font-semibold mb-2 text-pink-600">Anonymous Chat</h4>
+    <p class="text-gray-600">
+      Connect safely with strangers, share experiences, and support each other.
+    </p>
+  </a>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- About Section -->
+  <section id="about" class="bg-white py-20 px-6">
+    <div class="max-w-5xl mx-auto text-center">
+      <h3 class="text-3xl font-bold mb-6">Why We Built This</h3>
+      <p class="text-gray-600 leading-relaxed max-w-3xl mx-auto">
+        Mental health is just as important as physical health.  
+        <span class="font-medium text-indigo-600">MindfulSpace</span> was created during a hackathon to give everyone an easy, accessible,
+        and safe place to express themselves, talk openly, and grow emotionally.
+      </p>
+    </div>
+  </section>
+
+  <!-- Contact / Footer -->
+  <footer id="contact" class="bg-gray-900 text-gray-400 py-12">
+    <div class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center">
+      <p class="mb-6 md:mb-0">&copy; 2025 MindfulSpace. All rights reserved.</p>
+      <div class="space-x-6">
+        <a href="#" class="hover:text-white">Privacy</a>
+        <a href="#" class="hover:text-white">Terms</a>
+        <a href="mailto:contact@mindfulspace.com" class="hover:text-white">Contact</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

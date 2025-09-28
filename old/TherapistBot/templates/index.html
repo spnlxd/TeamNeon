@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8"/>
+	<meta name="viewport" content="width=device-width,initial-scale=1"/>
+	<title>Gemini Chat</title>
+	<style>
+		:root{
+			--bg1:#f7f9ff;
+			--bg2:#eef6ff;
+			--card:#ffffff;
+			--muted:#6b7280;
+			--accent:#4f46e5;
+			--user:#dcf8c6;
+		}
+		html,body{height:100%;}
+		body {
+			font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+			margin: 0;
+			padding: 0;
+			display:flex;
+			align-items:center;
+			justify-content:center;
+			background: linear-gradient(180deg,var(--bg1),var(--bg2));
+			color:#0f172a;
+		}
+		.container {
+			width:100%;
+			max-width:880px;
+			height:86vh;
+			display:flex;
+			flex-direction:column;
+			gap:12px;
+			padding:20px;
+			box-sizing:border-box;
+		}
+		.card {
+			background:var(--card);
+			border-radius:14px;
+			box-shadow:0 8px 30px rgba(15,23,42,0.08);
+			display:flex;
+			flex-direction:column;
+			overflow:hidden;
+			flex:1;
+			min-height:320px;
+		}
+		.header {
+			padding:16px 20px;
+			display:flex;
+			align-items:center;
+			justify-content:space-between;
+			border-bottom:1px solid rgba(15,23,42,0.04);
+			gap:12px;
+		}
+		.brand {
+			display:flex;
+			align-items:center;
+			gap:12px;
+		}
+		.logo {
+			width:44px;
+			height:44px;
+			border-radius:10px;
+			background:linear-gradient(135deg,var(--accent),#06b6d4);
+			display:flex;
+			align-items:center;
+			justify-content:center;
+			color:white;
+			font-weight:700;
+			font-size:18px;
+			box-shadow:0 4px 14px rgba(79,70,229,0.18);
+		}
+		.title {
+			display:flex;
+			flex-direction:column;
+		}
+		.title h2 {
+			margin:0;
+			font-size:16px;
+			letter-spacing:0.1px;
+		}
+		.title p {
+			margin:0;
+			font-size:12px;
+			color:var(--muted);
+		}
+		.controls {
+			display:flex;
+			align-items:center;
+			gap:8px;
+		}
+		.control-btn {
+			background:transparent;
+			border:1px solid rgba(15,23,42,0.06);
+			padding:8px 10px;
+			border-radius:8px;
+			font-size:13px;
+			color:var(--muted);
+			cursor:pointer;
+		}
+		.control-btn.primary {
+			background:linear-gradient(90deg,var(--accent),#06b6d4);
+			color:white;
+			border: none;
+			box-shadow: 0 6px 18px rgba(79,70,229,0.12);
+		}
+		.chat {
+			flex:1;
+			padding:18px;
+			overflow:auto;
+			background:linear-gradient(180deg, rgba(247,250,255,0.6), transparent);
+		}
+		.messages { display:flex; flex-direction:column; gap:12px; }
+		.message {
+			display:flex;
+			gap:10px;
+			max-width:78%;
+			align-items:flex-start;
+		}
+		.message .bubble {
+			padding:10px 12px;
+			border-radius:12px;
+			font-size:15px;
+			line-height:1.45;
+			white-space:pre-wrap;
+			box-shadow:0 2px 6px rgba(2,6,23,0.04);
+		}
+		.bot { align-self:flex-start; }
+		.bot .bubble {
+			background:#ffffff;
+			border:1px solid rgba(15,23,42,0.04);
+		}
+		.user { align-self:flex-end; flex-direction:row-reverse; }
+		.user .bubble {
+			background:var(--user);
+		}
+		.avatar {
+			width:36px;
+			height:36px;
+			border-radius:10px;
+			flex:0 0 36px;
+			display:flex;
+			align-items:center;
+			justify-content:center;
+			font-weight:600;
+			color:#fff;
+		}
+		.avatar.bot { background:linear-gradient(90deg,#111827, #374151); font-size:14px; }
+		.avatar.user { background:linear-gradient(90deg,#059669,#10b981); font-size:14px; }
+		.meta { font-size:12px; color:var(--muted); margin-top:6px; }
+		.inputRow {
+			padding:12px;
+			border-top:1px solid rgba(15,23,42,0.04);
+			display:flex;
+			gap:10px;
+			align-items:center;
+		}
+		.inputRow form { display:flex; flex:1; gap:10px; align-items:center; }
+		.inputRow input[type="text"] {
+			flex:1;
+			padding:12px 14px;
+			font-size:15px;
+			border-radius:10px;
+			border:1px solid rgba(15,23,42,0.06);
+			outline:none;
+			background:rgba(247,250,255,0.9);
+		}
+		.send-btn {
+			padding:10px 14px;
+			border-radius:10px;
+			border:none;
+			background:var(--accent);
+			color:white;
+			cursor:pointer;
+			font-weight:600;
+		}
+		.send-btn:disabled { opacity:0.6; cursor:not-allowed; }
+		.small { font-size:13px; color:var(--muted); }
+		.typing {
+			display:inline-block;
+			width:44px;
+			text-align:left;
+		}
+		.dot {
+			display:inline-block;
+			width:8px;
+			height:8px;
+			background:#c7cddb;
+			border-radius:50%;
+			margin-right:6px;
+			vertical-align:middle;
+			animation: blink 1s infinite;
+		}
+		.dot:nth-child(2){ animation-delay:0.15s; }
+		.dot:nth-child(3){ animation-delay:0.3s; }
+		@keyframes blink { 0%,80%,100%{opacity:0.25}40%{opacity:1} }
+
+		/* responsive */
+		@media (max-width:640px){
+			.container{ padding:12px; }
+			.header{ padding:12px; }
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<div class="card" role="application" aria-labelledby="chat-title">
+			<div class="header">
+				<div class="brand">
+					<div class="logo" aria-hidden="true">G</div>
+					<div class="title">
+						<h2 id="chat-title">AI-Therapist Bot</h2>
+						<p>Friendly assistant — ask anything</p>
+					</div>
+				</div>
+
+				<div class="controls" role="toolbar" aria-label="Chat controls">
+					<button id="clearBtn" class="control-btn" title="Clear conversation">Clear</button>
+					<button id="helpBtn" class="control-btn" title="Help" aria-hidden="true">?</button>
+				</div>
+			</div>
+
+			<div id="chat" class="chat" aria-live="polite" aria-atomic="false">
+				<div class="messages" id="messages">
+					<!-- existing messages... -->
+				</div>
+			</div>
+
+			<div class="inputRow">
+				<form id="msgForm" onsubmit="return false;">
+					<input id="messageInput" type="text" placeholder="Type a message and press Enter..." aria-label="Message" autocomplete="off"/>
+					<button id="sendBtn" class="send-btn" type="button">Send</button>
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		const chatEl = document.getElementById('chat');
+		const messagesEl = document.getElementById('messages');
+		const inputEl = document.getElementById('messageInput');
+		const btn = document.getElementById('sendBtn');
+		const clearBtn = document.getElementById('clearBtn');
+
+		function timeNow() {
+			const d = new Date();
+			return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+		}
+
+		function appendMessage(text, who, opts = {}) {
+			const wrap = document.createElement('div');
+			wrap.className = 'message ' + (who === 'user' ? 'user' : 'bot');
+
+			const avatar = document.createElement('div');
+			avatar.className = 'avatar ' + (who === 'user' ? 'user' : 'bot');
+			avatar.textContent = who === 'user' ? 'You' : 'G';
+
+			const bubble = document.createElement('div');
+			bubble.className = 'bubble';
+			bubble.textContent = text || '';
+
+			const meta = document.createElement('div');
+			meta.className = 'meta small';
+			meta.textContent = timeNow();
+
+			if (opts.html) {
+				bubble.innerHTML = text;
+			}
+
+			wrap.appendChild(avatar);
+			wrap.appendChild(bubble);
+			wrap.appendChild(meta);
+
+			messagesEl.appendChild(wrap);
+			chatEl.scrollTop = chatEl.scrollHeight;
+			return wrap;
+		}
+
+		function showTyping() {
+			const typingWrap = document.createElement('div');
+			typingWrap.className = 'message bot typing-row';
+			typingWrap.innerHTML = `<div class="avatar bot">G</div>
+				<div class="bubble">
+					<div class="typing" aria-hidden="true">
+						<span class="dot"></span><span class="dot"></span><span class="dot"></span>
+					</div>
+				</div>`;
+			messagesEl.appendChild(typingWrap);
+			chatEl.scrollTop = chatEl.scrollHeight;
+			return typingWrap;
+		}
+
+		async function sendMessage() {
+			const text = inputEl.value.trim();
+			if (!text) return;
+			appendMessage(text, 'user');
+			inputEl.value = '';
+			inputEl.disabled = true;
+			btn.disabled = true;
+			const typingNode = showTyping();
+
+			try {
+				const resp = await fetch('/predict', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ message: text })
+				});
+
+				// handle JSON or plain text
+				let data, replyText;
+				const ct = resp.headers.get('content-type') || '';
+				if (ct.includes('application/json')) {
+					data = await resp.json();
+					replyText = data && (data.reply || data.error || JSON.stringify(data));
+				} else {
+					// try to read as text if not JSON
+					replyText = await resp.text();
+				}
+
+				if (!resp.ok) {
+					appendMessage('Error: ' + (replyText || resp.statusText), 'bot');
+				} else {
+					appendMessage(replyText || 'No reply', 'bot');
+				}
+			} catch (err) {
+				appendMessage('Request failed: ' + (err.message || err), 'bot');
+			} finally {
+				// remove typing indicator if present
+				if (typingNode && typingNode.parentNode) typingNode.parentNode.removeChild(typingNode);
+				inputEl.disabled = false;
+				btn.disabled = false;
+				inputEl.focus();
+			}
+		}
+
+		btn.addEventListener('click', sendMessage);
+		inputEl.addEventListener('keydown', (e) => {
+			if (e.key === 'Enter') {
+				e.preventDefault();
+				sendMessage();
+			}
+		});
+
+		clearBtn.addEventListener('click', () => {
+			messagesEl.innerHTML = '';
+			inputEl.focus();
+		});
+
+		// initial focus
+		window.addEventListener('load', () => inputEl.focus());
+	</script>
+</body>
+</html>

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mindful Reflections - AI Journal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script type="module">
+        // NEW: Removed all Firebase SDK imports.
+        
+        // --- Global Constants and Configuration ---
+        const TODAY_DATE = new Date().toISOString().substring(0, 10);
+        
+        // Hardcoded API key
+        window.GEMINI_API_KEY = 'AIzaSyDnRNt754gPsiUQDgVlOyzUdQUiMjzLIPs';
+        
+        // MOCK Database variables for local execution
+        let userId = 'LOCAL_USER'; 
+        let isAuthReady = true; // Always ready in local mode
+
+        // Initialize local storage mock data
+        let mockJournalData = JSON.parse(localStorage.getItem('localJournalData')) || {};
+
+        // --- Core Application State & Elements ---
+        const state = {
+            currentDate: TODAY_DATE, // YYYY-MM-DD
+            journalEntry: '',
+            aiFeedback: '',
+            isSaving: false,
+            isGenerating: false,
+            isFinalized: false, // Tracks if the current day's entry is locked
+        };
+
+        // Get elements after DOM is loaded
+        let dateInput, journalTextarea, feedbackDisplay, saveButton, generateButton, loadingIndicator, statusMessage;
+
+        const uiElements = {
+            init: () => {
+                dateInput = document.getElementById('date-selector');
+                journalTextarea = document.getElementById('journal-textarea');
+                feedbackDisplay = document.getElementById('ai-feedback');
+                saveButton = document.getElementById('save-entry-btn');
+                generateButton = document.getElementById('generate-feedback-btn');
+                loadingIndicator = document.getElementById('loading-indicator');
+                statusMessage = document.getElementById('status-message');
+
+                // Set initial values and listeners
+                dateInput.value = state.currentDate;
+                dateInput.setAttribute('max', TODAY_DATE); // Prevents journaling for future dates
+                dateInput.addEventListener('change', (e) => {
+                    state.currentDate = e.target.value;
+                    // Note: No render() here, as loadJournalEntry handles rendering in mock mode
+                    loadJournalEntry(state.currentDate);
+                });
+
+                journalTextarea.addEventListener('input', (e) => {
+                    state.journalEntry = e.target.value;
+                    render();
+                });
+                
+                saveButton.addEventListener('click', () => saveJournalEntry(false));
+                generateButton.addEventListener('click', generateFeedback);
+            }
+        };
+
+        // --- UI Rendering ---
+        const render = () => {
+            // Update UI based on state
+            journalTextarea.value = state.journalEntry;
+            
+            // Display feedback or a message if finalized/empty
+            if (state.isFinalized) {
+                feedbackDisplay.innerHTML = state.aiFeedback.replace(/\n/g, '<br>') || '<p class="text-sm">This entry has been finalized and locked.</p>';
+            } else if (state.aiFeedback) {
+                 feedbackDisplay.innerHTML = state.aiFeedback.replace(/\n/g, '<br>');
+            } else {
+                 feedbackDisplay.innerHTML = 'Start writing your entry for today.';
+            }
+
+            const isCurrentDateToday = state.currentDate === TODAY_DATE;
+            const isEditable = isCurrentDateToday && !state.isFinalized;
+            const hasEnoughContent = state.journalEntry.trim().length >= 50;
+            const isJournalEntryPresent = state.journalEntry.trim().length > 0;
+            
+            // Disable Textarea if not editable
+            journalTextarea.disabled = !isEditable;
+
+            // Update button states
+            saveButton.disabled = !isEditable || state.isSaving || !isJournalEntryPresent;
+            saveButton.textContent = state.isSaving ? 'Saving...' : 'Save Entry';
+            
+            generateButton.disabled = !isEditable || state.isGenerating || !hasEnoughContent;
+            generateButton.textContent = state.isGenerating ? 'Generating...' : 'Get AI Feedback (Finalizes Day)';
+
+            // Set placeholder to inform user about state
+            journalTextarea.placeholder = isEditable 
+                ? "How are you truly feeling today? Write your reflections here..." 
+                : state.isFinalized 
+                    ? "This journal entry is finalized and cannot be edited or saved again."
+                    : "Only today's entry can be edited. Select today's date to continue journaling.";
+
+            // Show finalization badge if finalized
+            const finalizationBadge = document.getElementById('finalization-badge');
+            if (finalizationBadge) {
+                finalizationBadge.classList.toggle('hidden', !state.isFinalized);
+            }
+
+            loadingIndicator.classList.toggle('hidden', !state.isGenerating);
+            
+            // Show user ID
+            const userIdDisplay = document.getElementById('user-id-display');
+            if (userIdDisplay) {
+                userIdDisplay.textContent = `User ID: ${userId} (Local Mode)`;
+            }
+        };
+
+        // --- MOCK DATABASE Operations (Using Local Storage) ---
+        
+        const loadJournalEntry = async (date) => {
+            // Load state from local storage
+            state.aiFeedback = ''; 
+            
+            if (mockJournalData[date]) {
+                const data = mockJournalData[date];
+                state.journalEntry = data.entry || '';
+                state.aiFeedback = data.feedback || ''; 
+                state.isFinalized = data.isFinalized || false;
+            } else {
+                state.journalEntry = '';
+                state.aiFeedback = '';
+                state.isFinalized = false;
+            }
+            render();
+        };
+
+        const saveJournalEntry = async (shouldFinalize = false) => {
+            if (state.journalEntry.trim() === '' || (!shouldFinalize && state.isFinalized)) return;
+            
+            state.isSaving = true;
+            statusMessage.classList.add('hidden');
+            render();
+
+            try {
+                const finalizeFlag = shouldFinalize || state.isFinalized || false;
+                
+                // MOCK SAVE OPERATION: Update local object and localStorage
+                mockJournalData[state.currentDate] = {
+                    date: state.currentDate,
+                    entry: state.journalEntry,
+                    feedback: state.aiFeedback,
+                    isFinalized: finalizeFlag,
+                    timestamp: new Date().getTime()
+                };
+                localStorage.setItem('localJournalData', JSON.stringify(mockJournalData));
+
+                // Update local state after successful save
+                state.isFinalized = finalizeFlag; 
+
+                statusMessage.textContent = `Entry saved locally for ${state.currentDate} ${finalizeFlag ? '(Finalized)' : ''}!`;
+                statusMessage.classList.remove('hidden', 'text-red-600');
+                statusMessage.classList.add('text-green-600');
+            } catch (e) {
+                console.error("Error saving document locally: ", e);
+                statusMessage.textContent = "Error saving entry to local storage.";
+                statusMessage.classList.remove('hidden', 'text-green-600');
+                statusMessage.classList.add('text-red-600');
+            } finally {
+                state.isSaving = false;
+                render();
+            }
+        };
+
+        // --- Firebase Setup (Mocked) ---
+        const initFirebase = async () => {
+            console.warn("Running in LOCAL MODE: Firebase database persistence is disabled. Data is saved to your browser's Local Storage.");
+            // Set initial state based on today's date from local storage
+            loadJournalEntry(state.currentDate); 
+        };
+
+        // --- Gemini AI Function ---
+        const generateFeedback = async () => {
+            const apiKey = window.GEMINI_API_KEY;
+            
+            if (!apiKey || state.isFinalized) return;
+
+            state.isGenerating = true;
+            state.aiFeedback = 'Requesting feedback from Gemini...';
+            statusMessage.classList.add('hidden');
+            render();
+
+            // Set the model's persona and response structure
+            const systemPrompt = `You are a compassionate, supportive, and non-judgemental mental wellness assistant. Your role is to provide constructive, general, and supportive feedback based on a user's daily journal entry. Do not diagnose or offer professional medical advice.
+
+Your response should be structured clearly with two parts:
+1. **Reflective Summary:** A short, gentle summary acknowledging the core feelings or events mentioned.
+2. **Supportive Suggestion:** One actionable, simple, and encouraging suggestion for self-care or positive reframing for the user to consider.
+
+Keep the tone warm and empowering. The total response must be concise and easy to read.`;
+
+            const journalText = state.journalEntry;
+            const userQuery = `My journal entry for today is:\n\n"${journalText}"`;
+            
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                },
+            };
+
+            const maxRetries = 3;
+            let attempt = 0;
+            let success = false;
+            let responseText = "Could not connect to the AI model. Please check your API key and network connection.";
+
+            while (attempt < maxRetries && !success) {
+                attempt++;
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        // Check for common API key errors here (e.g., 400 or 403)
+                        const errorData = await response.json();
+                        throw new Error(`API returned status ${response.status}. Error: ${errorData.error.message}`);
+                    }
+
+                    const result = await response.json();
+                    const candidate = result.candidates?.[0];
+
+                    if (candidate && candidate.content?.parts?.[0]?.text) {
+                        responseText = candidate.content.parts[0].text;
+                        success = true;
+                    }
+
+                } catch (error) {
+                    console.error(`Attempt ${attempt} failed:`, error);
+                    if (attempt < maxRetries) {
+                        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000)); // Exponential backoff
+                    }
+                }
+            }
+
+            state.aiFeedback = responseText;
+            state.isGenerating = false;
+            
+            // Auto-save the entry AND set isFinalized to true
+            if (success) {
+                 statusMessage.classList.add('hidden'); // Clear status if successful
+                 await saveJournalEntry(true); // FINALIZING the entry
+            } else {
+                statusMessage.textContent = "AI generation failed. Please check your API key and try again. See console for details.";
+                statusMessage.classList.remove('hidden', 'text-green-600');
+                statusMessage.classList.add('text-red-600');
+            }
+            render();
+        };
+
+
+        // --- Initialize App ---
+        window.onload = () => {
+            uiElements.init();
+            initFirebase();
+            render();
+        };
+
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7fafc; /* Soft white/light gray */
+        }
+        .container {
+            max-width: 900px;
+        }
+        textarea, input[type="text"], input[type="date"] {
+            transition: all 0.2s;
+            border-color: #cbd5e1; /* slate-300 */
+        }
+        textarea:focus, input:focus {
+            border-color: #6366f1 !important; /* indigo-500 */
+            box-shadow: 0 0 0 1px #6366f1 !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-bold text-indigo-700">Mindful Reflections</h1>
+            <p class="text-lg text-gray-500 mt-1">A private journal for mental wellness and supportive AI feedback.</p>
+            <p id="user-id-display" class="text-xs text-gray-400 mt-2"></p>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <section class="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-2xl font-semibold text-gray-700">Your Daily Entry</h2>
+                    <span id="finalization-badge" class="hidden bg-red-100 text-red-700 text-xs font-bold px-3 py-1 rounded-full shadow-inner">
+                        FINALIZED
+                    </span>
+                </div>
+                
+                <div class="mb-4 flex items-center space-x-3">
+                    <label for="date-selector" class="text-gray-600 font-medium">Viewing Date:</label>
+                    <input type="date" id="date-selector" class="flex-grow p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+
+                <textarea id="journal-textarea" rows="12" 
+                          class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 resize-none text-gray-700"></textarea>
+
+                <div class="mt-4 space-y-3">
+                    <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
+                        <button id="save-entry-btn" 
+                                class="flex-1 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition duration-150 shadow-md">
+                            Save Entry
+                        </button>
+                        <button id="generate-feedback-btn" 
+                                class="flex-1 px-6 py-3 bg-teal-500 text-white font-semibold rounded-xl hover:bg-teal-600 transition duration-150 shadow-md"
+                                title="Minimum 50 characters required. This action finalizes the day's entry.">
+                            Get AI Feedback (Finalizes Day)
+                        </button>
+                    </div>
+                    
+                    <p id="status-message" class="text-sm px-2 py-1 rounded-lg hidden"></p>
+                </div>
+            </section>
+
+            <section class="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">AI Wellness Reflection</h2>
+                
+                <div id="loading-indicator" class="hidden text-center py-6">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto mb-2"></div>
+                    <p class="text-indigo-600">AI is reviewing your thoughts...</p>
+                </div>
+
+                <div id="ai-feedback" 
+                     class="min-h-[250px] p-4 bg-indigo-50 text-indigo-800 border-l-4 border-indigo-300 rounded-xl shadow-inner whitespace-pre-line text-base leading-relaxed">
+                    Start writing your entry for today.
+                </div>
+            </section>
+        </main>
+    </div>
+
+</body>
+</html>
